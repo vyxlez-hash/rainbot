@@ -2,10 +2,11 @@
   "name": "bloxblitz-auto",
   "version": "1.0.0",
   "private": true,
-  "description": "BloxBlitz watcher dashboard with persistent browser profiles and Discord webhook notifications.",
+  "description": "BloxBlitz watcher dashboard",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "postinstall": "npx playwright install chromium",
     "dev": "node server.js"
   },
   "dependencies": {
