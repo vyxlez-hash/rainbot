@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>BloxBlitz Auto Joiner</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <div class="eyebrow">BLOXBLITZ</div>
+        <h1>Auto Joiner</h1>
+      </div>
+      <div id="system" class="pill">Checking...</div>
+    </header>
+
+    <section class="stats">
+      <div class="stat"><span>Accounts</span><strong id="count">0</strong></div>
+      <div class="stat"><span>Watching</span><strong id="watching">0</strong></div>
+      <div class="stat"><span>Auto Join</span><strong id="auto">ON</strong></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Connected Accounts</h2>
+        <button id="add">+ Connect account</button>
+      </div>
+      <div id="accounts"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Settings</h2>
+      </div>
+      <label class="switchrow">
+        <span>Automatic joining</span>
+        <input id="autoToggle" type="checkbox">
+      </label>
+      <label class="switchrow">
+        <span>Discord webhook</span>
+        <input id="webhookToggle" type="checkbox">
+      </label>
+      <button id="testWebhook" class="secondary">Send webhook test</button>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Activity</h2>
+      </div>
+      <div id="activity"></div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

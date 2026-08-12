@@ -1,0 +1,55 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #0b0d0c;
+  color: #f4f7f5;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+.shell { width: min(1100px, calc(100% - 32px)); margin: 35px auto 80px; }
+header { display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; }
+.eyebrow { color:#63e68b; font-size:12px; font-weight:800; letter-spacing:.18em; }
+h1 { margin:5px 0 0; font-size:34px; }
+h2 { margin:0; font-size:18px; }
+.pill {
+  padding:9px 13px; border:1px solid #244a31; border-radius:999px;
+  background:#102016; color:#63e68b; font-size:13px; font-weight:700;
+}
+.stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:14px; }
+.stat,.panel {
+  background:#111412; border:1px solid #202521; border-radius:16px;
+}
+.stat { padding:20px; }
+.stat span { display:block; color:#8e9790; font-size:13px; }
+.stat strong { display:block; margin-top:8px; font-size:25px; }
+.panel { padding:20px; margin-top:14px; }
+.panel-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+button {
+  border:0; border-radius:10px; padding:10px 14px; cursor:pointer;
+  background:#42d878; color:#07100a; font-weight:800;
+}
+button.secondary { margin-top:14px; background:#202621; color:#e8eee9; }
+.account {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:15px; border:1px solid #202521; border-radius:12px; margin-top:10px;
+}
+.name { font-weight:800; }
+.meta { color:#879088; font-size:12px; margin-top:4px; }
+.status { display:flex; gap:8px; align-items:center; }
+.dot { width:8px; height:8px; border-radius:50%; background:#6b756e; }
+.dot.on { background:#42d878; box-shadow:0 0 10px #42d878; }
+.switchrow {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:13px 0; border-bottom:1px solid #202521; color:#dfe6e0;
+}
+.activity {
+  padding:10px 0; border-bottom:1px solid #202521; color:#cbd2cc;
+  font-size:13px;
+}
+.activity small { color:#737d75; margin-right:10px; }
+.empty { color:#707970; padding:10px 0; }
+@media(max-width:700px) {
+  .stats { grid-template-columns:1fr; }
+  header { align-items:flex-start; gap:10px; }
+  .account { gap:12px; }
+}
