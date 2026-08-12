@@ -2,14 +2,15 @@
   "name": "bloxblitz-auto",
   "version": "1.0.0",
   "private": true,
-  "description": "BloxBlitz watcher dashboard",
+  "description": "BloxBlitz dashboard and authorized local account connector",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "postinstall": "npx playwright install chromium",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "postinstall": "npx playwright install chromium"
   },
   "dependencies": {
+    "dotenv": "^16.4.5",
     "express": "^5.1.0",
     "playwright": "^1.55.0"
   }
