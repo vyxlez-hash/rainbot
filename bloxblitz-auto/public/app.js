@@ -1,129 +1,446 @@
-async function api(url, options) {
-  const r = await fetch(url, {
-    headers: { "content-type": "application/json" },
-    ...options
+async function api(url, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+
+    headers: {
+      "content-type":
+        "application/json",
+
+      ...(options.headers || {})
+    }
   });
-  const data = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
+
+  const data =
+    await response
+      .json()
+      .catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(
+      data.error ||
+        `HTTP ${response.status}`
+    );
+  }
+
   return data;
 }
 
-function esc(s) {
-  return String(s).replace(/[&<>"']/g, c => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-  }[c]));
+function esc(value) {
+  return String(value).replace(
+    /[&<>"']/g,
+    character =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[character])
+  );
+}
+
+function formatStatus(account) {
+  if (account.online) {
+    return "Watching";
+  }
+
+  if (account.connected) {
+    return "Connected";
+  }
+
+  return "Not connected";
 }
 
 async function refresh() {
-  const state = await api("/api/state");
-  const accounts = state.accounts || [];
-  const watching = accounts.filter(a => a.status?.running).length;
+  try {
+    const state =
+      await api(
+        "/api/state"
+      );
 
-  document.querySelector("#count").textContent = accounts.length;
-  document.querySelector("#watching").textContent = watching;
-  document.querySelector("#auto").textContent = state.settings.autoJoin ? "ON" : "OFF";
-  document.querySelector("#system").textContent = "● SYSTEM ONLINE";
+    const accounts =
+      state.accounts || [];
 
-  document.querySelector("#autoToggle").checked = !!state.settings.autoJoin;
-  document.querySelector("#webhookToggle").checked = !!state.settings.webhookEnabled;
+    const watching =
+      accounts.filter(
+        account =>
+          account.online
+      ).length;
 
-  const box = document.querySelector("#accounts");
+    document.querySelector(
+      "#count"
+    ).textContent =
+      accounts.length;
 
-  if (!accounts.length) {
-    box.innerHTML = `<div class="empty">No accounts connected yet.</div>`;
-  } else {
-    box.innerHTML = accounts.map(a => `
-      <div class="account">
-        <div>
-          <div class="name">${esc(a.name)}</div>
-          <div class="meta">${a.status?.running ? "Watching BloxBlitz" : "Not running"}</div>
-        </div>
-        <div class="status">
-          <span class="dot ${a.status?.running ? "on" : ""}"></span>
-          <button data-toggle="${esc(a.id)}">${a.enabled ? "Disable" : "Enable"}</button>
-          <button class="secondary" data-delete="${esc(a.id)}">Delete</button>
-        </div>
-      </div>
-    `).join("");
-  }
+    document.querySelector(
+      "#watching"
+    ).textContent =
+      watching;
 
-  document.querySelector("#activity").innerHTML =
-    state.activity.length
-      ? state.activity.map(x =>
-          `<div class="activity"><small>${new Date(x.time).toLocaleTimeString()}</small>${esc(
-            x.account ? `${x.account}: ` : ""
-          )}${esc(x.type.replaceAll("_", " "))}${x.error ? ` — ${esc(x.error)}` : ""}</div>`
-        ).join("")
-      : `<div class="empty">No activity yet.</div>`;
+    document.querySelector(
+      "#auto"
+    ).textContent =
+      state.settings.autoJoin
+        ? "ON"
+        : "OFF";
 
-  document.querySelectorAll("[data-toggle]").forEach(btn => {
-    btn.onclick = async () => {
-      const id = btn.dataset.toggle;
-      const account = accounts.find(x => x.id === id);
-      await api(`/api/accounts/${id}/toggle`, {
-        method: "POST",
-        body: JSON.stringify({ enabled: !account.enabled })
+    document.querySelector(
+      "#system"
+    ).textContent =
+      "● SYSTEM ONLINE";
+
+    document.querySelector(
+      "#autoToggle"
+    ).checked =
+      !!state.settings.autoJoin;
+
+    document.querySelector(
+      "#webhookToggle"
+    ).checked =
+      !!state.settings
+        .webhookEnabled;
+
+    const accountsBox =
+      document.querySelector(
+        "#accounts"
+      );
+
+    if (!accounts.length) {
+      accountsBox.innerHTML =
+        `<div class="empty">
+          No accounts connected yet.
+        </div>`;
+    } else {
+      accountsBox.innerHTML =
+        accounts
+          .map(
+            account => `
+              <div class="account">
+                <div>
+                  <div class="name">
+                    ${esc(account.name)}
+                  </div>
+
+                  <div class="meta">
+                    ${esc(
+                      formatStatus(
+                        account
+                      )
+                    )}
+                  </div>
+                </div>
+
+                <div class="status">
+                  <span class="dot ${
+                    account.online
+                      ? "on"
+                      : ""
+                  }"></span>
+
+                  <button
+                    data-connect="${esc(
+                      account.id
+                    )}"
+                  >
+                    ${
+                      account.connected
+                        ? "Reconnect"
+                        : "Connect"
+                    }
+                  </button>
+
+                  <button
+                    class="secondary"
+                    data-toggle="${esc(
+                      account.id
+                    )}"
+                  >
+                    ${
+                      account.enabled
+                        ? "Disable"
+                        : "Enable"
+                    }
+                  >
+
+                  <button
+                    class="secondary"
+                    data-delete="${esc(
+                      account.id
+                    )}"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            `
+          )
+          .join("");
+    }
+
+    const activity =
+      state.activity || [];
+
+    document.querySelector(
+      "#activity"
+    ).innerHTML =
+      activity.length
+        ? activity
+            .map(
+              item => `
+                <div class="activity">
+                  <small>
+                    ${new Date(
+                      item.time
+                    ).toLocaleTimeString()}
+                  </small>
+
+                  ${
+                    item.account
+                      ? `${esc(
+                          item.account
+                        )}: `
+                      : ""
+                  }
+
+                  ${esc(
+                    String(
+                      item.type ||
+                        ""
+                    )
+                      .replaceAll(
+                        "_",
+                        " "
+                      )
+                  )}
+
+                  ${
+                    item.error
+                      ? ` — ${esc(
+                          item.error
+                        )}`
+                      : ""
+                  }
+                </div>
+              `
+            )
+            .join("")
+        : `<div class="empty">
+             No activity yet.
+           </div>`;
+
+    document
+      .querySelectorAll(
+        "[data-connect]"
+      )
+      .forEach(button => {
+        button.onclick =
+          async () => {
+            try {
+              const result =
+                await api(
+                  `/api/accounts/${button.dataset.connect}/connect`,
+                  {
+                    method: "POST"
+                  }
+                );
+
+              alert(
+                [
+                  result.message,
+                  "",
+                  "Run this command on the computer that will keep the BloxBlitz account online:",
+                  "",
+                  result.command
+                ].join("\n")
+              );
+            } catch (error) {
+              alert(
+                error.message
+              );
+            }
+          };
       });
-      refresh();
-    };
-  });
 
-  document.querySelectorAll("[data-delete]").forEach(btn => {
-    btn.onclick = async () => {
-      if (!confirm("Delete this account?")) return;
-      await api(`/api/accounts/${btn.dataset.delete}`, { method: "DELETE" });
-      refresh();
-    };
-  });
+    document
+      .querySelectorAll(
+        "[data-toggle]"
+      )
+      .forEach(button => {
+        button.onclick =
+          async () => {
+            const account =
+              accounts.find(
+                item =>
+                  item.id ===
+                  button.dataset
+                    .toggle
+              );
+
+            if (!account) {
+              return;
+            }
+
+            await api(
+              `/api/accounts/${account.id}/toggle`,
+              {
+                method: "POST",
+
+                body:
+                  JSON.stringify({
+                    enabled:
+                      !account.enabled
+                  })
+              }
+            );
+
+            await refresh();
+          };
+      });
+
+    document
+      .querySelectorAll(
+        "[data-delete]"
+      )
+      .forEach(button => {
+        button.onclick =
+          async () => {
+            if (
+              !confirm(
+                "Delete this account?"
+              )
+            ) {
+              return;
+            }
+
+            await api(
+              `/api/accounts/${button.dataset.delete}`,
+              {
+                method: "DELETE"
+              }
+            );
+
+            await refresh();
+          };
+      });
+  } catch (error) {
+    document.querySelector(
+      "#system"
+    ).textContent =
+      "● API ERROR";
+
+    console.error(error);
+  }
 }
 
-document.querySelector("#add").onclick = async () => {
-  const name = prompt("BloxBlitz account name:");
-  if (!name) return;
+document.querySelector(
+  "#add"
+).onclick = async () => {
+  const name =
+    prompt(
+      "Enter a name for this connected BloxBlitz account:"
+    );
 
-  const account = await api("/api/accounts", {
-    method: "POST",
-    body: JSON.stringify({ name })
-  });
-
-  /*
-    This opens a visible browser on the server so the account owner can
-    complete BloxBlitz's normal phrase-to-bio login flow.
-  */
-  try {
-    await api(`/api/accounts/${account.id}/connect`, { method: "POST" });
-    alert("BloxBlitz login browser opened. Complete the normal login/phrase-to-bio flow there, then leave the browser session running.");
-  } catch (e) {
-    alert(e.message);
+  if (!name) {
+    return;
   }
 
-  refresh();
-};
-
-document.querySelector("#autoToggle").onchange = async e => {
-  await api("/api/settings", {
-    method: "POST",
-    body: JSON.stringify({ autoJoin: e.target.checked })
-  });
-  refresh();
-};
-
-document.querySelector("#webhookToggle").onchange = async e => {
-  await api("/api/settings", {
-    method: "POST",
-    body: JSON.stringify({ webhookEnabled: e.target.checked })
-  });
-  refresh();
-};
-
-document.querySelector("#testWebhook").onclick = async () => {
   try {
-    await api("/api/webhook/test", { method: "POST" });
-    alert("Webhook sent.");
-  } catch (e) {
-    alert(e.message);
+    const account =
+      await api(
+        "/api/accounts",
+        {
+          method: "POST",
+
+          body:
+            JSON.stringify({
+              name
+            })
+        }
+      );
+
+    alert(
+      [
+        "Account created.",
+        "",
+        "Now click Connect on that account.",
+        "",
+        account.connectorCommand
+      ].join("\n")
+    );
+
+    await refresh();
+  } catch (error) {
+    alert(
+      error.message
+    );
   }
 };
+
+document.querySelector(
+  "#autoToggle"
+).onchange =
+  async event => {
+    await api(
+      "/api/settings",
+      {
+        method: "POST",
+
+        body:
+          JSON.stringify({
+            autoJoin:
+              event.target.checked
+          })
+      }
+    );
+
+    await refresh();
+  };
+
+document.querySelector(
+  "#webhookToggle"
+).onchange =
+  async event => {
+    await api(
+      "/api/settings",
+      {
+        method: "POST",
+
+        body:
+          JSON.stringify({
+            webhookEnabled:
+              event.target.checked
+          })
+      }
+    );
+
+    await refresh();
+  };
+
+document.querySelector(
+  "#testWebhook"
+).onclick =
+  async () => {
+    try {
+      await api(
+        "/api/webhook/test",
+        {
+          method: "POST"
+        }
+      );
+
+      alert(
+        "Webhook sent."
+      );
+    } catch (error) {
+      alert(
+        error.message
+      );
+    }
+  };
 
 refresh();
-setInterval(refresh, 3000);
+
+setInterval(
+  refresh,
+  3000
+);
